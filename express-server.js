@@ -19,7 +19,7 @@ morgan('dev');
 
 function generateRandomString() {
   const stringLength = 6;
-  const result           = '';
+  let result           = '';
   const characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const charactersLength = characters.length;
   for ( var i = 0; i < 6; i++ ) {
@@ -40,9 +40,10 @@ app.get("/urls", (req, res) => {
 
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
-  const newUrl = generateRandomString(); 
+  let newUrl = generateRandomString(); 
+  console.log("newUrl = ", newUrl);
   urlDatabase[newUrl] = req.body.longURL;
+  res.redirect(`/urls/${newUrl}`);         // Respond with 'Ok' (we will replace this)
 });
 
 app.get("/urls.json", (req, res) => {
