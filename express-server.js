@@ -27,6 +27,15 @@ app.get("/adam", (req, res) => {
   res.send("What's up it's ya boi Adam!");
 });
 
+app.get("/set", (req, res) => {
+  const a = 1;
+  res.send(`a = ${a}`);
+ });
+ 
+ app.get("/fetch", (req, res) => {
+  res.send(`a = ${a}`);
+ });
+ 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
