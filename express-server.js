@@ -65,10 +65,17 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
+app.post("/urls/:shortURL/delete", (req, res) => {
+  console.log("req.params.shortURL :", req.params.shortURL);
+  const id = req.params.shortURL;
+  delete urlDatabase[id];
+  res.redirect('/urls/');
+})
 
 // Not yet working 
 app.get("*", (req, res) => {
-  res.render('404')
+  // display the 404
+  res.status(404).render('404');
 });
 
 app.listen(PORT, () => {
