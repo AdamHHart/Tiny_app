@@ -65,6 +65,8 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
+
+// Not yet working 
 app.get("*", (req, res) => {
   res.render('404')
 });
