@@ -15,7 +15,7 @@ const urlDatabase = {
   
 };
 
-morgan('dev');
+app.use(morgan('dev'));
 
 function generateRandomString() {
   const stringLength = 6;
@@ -63,6 +63,10 @@ app.get("/u/:shortURL", (req, res) => {
   console.log(urlDatabase[req.params.shortURL]);
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
+});
+
+app.get("*", (req, res) => {
+  res.render('404')
 });
 
 app.listen(PORT, () => {
