@@ -8,39 +8,36 @@ const PORT = 8080; // default port 8080
 
 app.set('view engine', 'ejs');
 
+// MIDDLEWEAR
+
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(morgan('dev'));
 
+
+// DATABASES
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
-  
 };
 
-  let userObj = { 
-    "userRandomID": {
-      id: "userRandomID", 
-      email: "user@example.com", 
-      password: "purple-monkey-dinosaur"
-    },
-   "user2RandomID": {
-      id: "user2RandomID", 
-      email: "user2@example.com", 
-      password: "dishwasher-funk"
-    }
-  };
+let userObj = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+  "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+};
 
+// FUNCTIONS
 
-app.get('/', (req, res) => {
-  console.log('Cookies: ', req.cookies);
-  const templateVars = {
-    user: userObj[req.cookies.userID], 
-    // ... any other vars
-  };
-  res.render("urls_index", templateVars);
-});
-
+// userID
 function generateRandomUserId() {
   const stringLength = 12;
   let result           = '';
@@ -53,6 +50,7 @@ function generateRandomUserId() {
   return (result);
 }
 
+// shortURL
 function generateRandomString() {
   const stringLength = 6;
   let result           = '';
@@ -64,6 +62,28 @@ function generateRandomString() {
   // console.log(result);
   return (result);
 }
+
+// Returns true if email already exists, false if not
+const emailFinder = function(email, password) {
+  for (const obj in userObj) {
+    if (userObj[obj].email === email) {
+      return (true);
+    } 
+  }
+  return (false);
+}
+
+
+// APP PAGES
+
+app.get('/', (req, res) => {
+  const templateVars = {
+    user: userObj[req.cookies.userID], 
+    urls: urlDatabase 
+  };
+  res.render("urls_index", templateVars);
+});
+
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -138,25 +158,28 @@ app.get("/register", (req, res) => {
 
 // submit handler (registration form)
 app.post("/register", (req, res) => {
-  console.log("register req.body = ", req.body);
   if (req.body['email'] !== undefined  && req.body['password'] !== undefined) {  //user passes in name and password
     const userEmail = req.body['email'];
     const userPass = req.body['password'];
     const randomId = generateRandomUserId();
-    let newUserObj = {}
-    newUserObj = {
-      "id": randomId,
-      "email": userEmail,
-      "password": userPass
-    };
-    userObj[randomId] = newUserObj;
-    console.log("newUserObj = ", newUserObj);
-    console.log("userObj = ", userObj);
-
-    res.cookie('userID', newUserObj['id']);
-    res.redirect('/urls');
-  }
-  if (req.body['username'] === undefined  || req.body['password'] === undefined) {  //user passes in name and password
+    if (emailFinder(userEmail) === false && (userEmail !== ""  || userPass !== "")) {
+      let newUserObj = {}
+      newUserObj = {
+        "id": randomId,
+        "email": userEmail,
+        "password": userPass
+      };
+      userObj[randomId] = newUserObj;
+      console.log("newUserObj = ", newUserObj);
+      console.log("userObj = ", userObj);
+  
+      res.cookie('userID', newUserObj['id']);
+      res.redirect('/urls');
+    }
+    if (emailFinder(userEmail) === true) {
+      res.status(404).render('404'); 
+    }
+  } if (req.body['username'] === undefined  || req.body['password'] === undefined) {  //user passes in name and password
     res.redirect('/register');
   }
 })
