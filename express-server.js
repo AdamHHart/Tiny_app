@@ -38,6 +38,8 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+
+// create new url
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
   let newUrl = generateRandomString(); 
@@ -60,17 +62,26 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  console.log(urlDatabase[req.params.shortURL]);
+  // console.log(urlDatabase[req.params.shortURL]);
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  console.log("req.params.shortURL :", req.params.shortURL);
+  // console.log("req.params.shortURL :", req.params.shortURL);
   const id = req.params.shortURL;
   delete urlDatabase[id];
   res.redirect('/urls/');
 })
+
+app.post("/urls/:shortURL", (req, res) => {
+  console.log("This is req.params.shortURL: ", req.params.shortURL);
+  console.log("This is urlDatabase[req.params.shortURL]: ", urlDatabase[req.params.shortURL]);
+  console.log("This is req: ", req);
+
+  urlDatabase[req.params.shortURL] = req.body.longURL; //want this to equal the input url from POST 
+  res.redirect('/urls');
+});
 
 // Not yet working 
 app.get("*", (req, res) => {
