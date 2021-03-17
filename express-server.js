@@ -25,8 +25,8 @@ const urlDatabase = {
 let userObj = { 
   "userRandomID": {
     id: "userRandomID", 
-    email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    email: "ad@ad.ca", 
+    password: "AD"
   },
   "user2RandomID": {
     id: "user2RandomID", 
@@ -64,14 +64,22 @@ function generateRandomString() {
 }
 
 // Returns true if email already exists, false if not
-const emailFinder = function(email, password) {
+const emailFinder = function(emailParam, password) {
   for (const obj in userObj) {
-    if (userObj[obj].email === email) {
+    if (userObj[obj].email === emailParam) {
       return (true);
     } 
   }
   return (false);
 }
+const objectFinder = function(emailParam, password) {
+  for (const obj in userObj) {
+    if (userObj[obj].email === emailParam) {
+      return (userObj[obj]);
+    } 
+  }
+}
+
 
 
 // APP PAGES
@@ -146,13 +154,6 @@ app.get("/u/:shortURL", (req, res) => {
 
 // Registration routes
 app.get("/register", (req, res) => {
-  console.log("req.body['email'] email = ", req.body['email']);
-  console.log("req.body['password'] password = ", req.body['password']);
-  const userEmail = req.body['email'];
-  const userPass = req.body['password'];
-  // userObj.userEmail = userPass;
-
-
   res.render('register');
 });
 
@@ -162,6 +163,7 @@ app.post("/register", (req, res) => {
     const userEmail = req.body['email'];
     const userPass = req.body['password'];
     const randomId = generateRandomUserId();
+    //if email does not exist in database, and is valid
     if (emailFinder(userEmail) === false && (userEmail !== ""  || userPass !== "")) {
       let newUserObj = {}
       newUserObj = {
@@ -169,13 +171,11 @@ app.post("/register", (req, res) => {
         "email": userEmail,
         "password": userPass
       };
-      userObj[randomId] = newUserObj;
-      console.log("newUserObj = ", newUserObj);
-      console.log("userObj = ", userObj);
-  
+      userObj[randomId] = newUserObj; 
       res.cookie('userID', newUserObj['id']);
       res.redirect('/urls');
     }
+    // if email already exists in database
     if (emailFinder(userEmail) === true) {
       res.status(404).render('404'); 
     }
@@ -186,8 +186,6 @@ app.post("/register", (req, res) => {
 
 // Login routes
 app.get("/login", (req, res) => {
-  console.log("req.body['email'] email = ", req.body['email']);
-  console.log("req.body['password'] password = ", req.body['password']);
   const userEmail = req.body['email'];
   const userPass = req.body['password'];
   userObj.userEmail = userPass;
@@ -202,16 +200,29 @@ app.post("/login", (req, res) => {
   const userName = req.body['email'];
   const userPass = req.body['password'];
 
-  // res.cookie('username', userName);
-  // console.log('username =', userName);
-  // res.redirect('/urls');
-  if (userObj.userName && userObj.userName === userPass) {
-  res.cookie('email', userName);
+  // if email exists in database
+  if (emailFinder(userName) === true) {
+
+    const specificUserObj = objectFinder(userName);
+    console.log("specific user object = ", specificUserObj);
+    // verify password 
+    console.log("userObj[specificUserObj.id].id = ", userObj[specificUserObj.id].id);
+    res.cookie('userID', userObj[specificUserObj.id].id);
+    // res.cookie('email', userName);
     res.redirect('/urls')
-  }
-  if (userObj.userName && userObj.userName === userPass) {
-    res.redirect('/login')
-  }
+  } 
+  // if email does not exist in database
+  if (emailFinder(userName) === false) {
+    // go to registration
+    res.redirect('/register');
+  } 
+  // if (userObj.userName && userObj.userName === userPass) {
+  // res.cookie('email', userName);
+  //   res.redirect('/urls')
+  // }
+  // if (userObj.userName && userObj.userName === userPass) {
+  //   res.redirect('/login')
+  // }
 });
 
 // This clears the cookie jar when you click logout
