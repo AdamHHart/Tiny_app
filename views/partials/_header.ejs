@@ -5,13 +5,23 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-      <h3  class="navbar-brand"> USERNAME</h3>
-      <h3  class="navbar-brand"> <%= username %> </h3>
-      <form method="POST" action="/login"> 
-        <input class="form-control" type="text" id="username" name="username" placeholder="enter username">
-        <input type="submit" class="btn btn-secondary btn-sm"
-        value="Sign In/Submit">
-      </form>
+
+      <% if (username === undefined) { %>
+        <form method="POST" action="/login"> 
+          <input class="form-control" type="text" id="username" name="username" placeholder="enter username">
+          <input type="submit" class="btn btn-secondary btn-sm"
+          value="Sign In/Submit">
+        </form>        
+      <% } %>
+      <% if (username !== undefined) { %>
+          <h3  class="navbar-brand"> USERNAME</h3>
+          <h3  class="navbar-brand"> <%= username %> </h3>
+          <form method="POST" action="/logout"> 
+            <input type="submit" class="btn btn-secondary btn-sm"
+            value="LOG OUT">
+          </form>        
+      <% } %>
+
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
