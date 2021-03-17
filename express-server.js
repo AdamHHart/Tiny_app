@@ -72,10 +72,19 @@ const emailFinder = function(emailParam, password) {
   }
   return (false);
 }
+// Returns a single user object
 const objectFinder = function(emailParam, password) {
   for (const obj in userObj) {
     if (userObj[obj].email === emailParam) {
       return (userObj[obj]);
+    } 
+  }
+}
+// Verify Password
+const verifyPassword = function(password, userObject) {
+  for (const key in userObject) {
+    if (userObject.password === password) {
+      return (true);
     } 
   }
 }
@@ -196,33 +205,36 @@ app.get("/login", (req, res) => {
 
 // Login submit handler This adds the username to the cookie jar and refreshes the page
 app.post("/login", (req, res) => {
-  console.log("req.body = ", req.body);
   const userName = req.body['email'];
   const userPass = req.body['password'];
 
   // if email exists in database
   if (emailFinder(userName) === true) {
 
+    // isolates login object
     const specificUserObj = objectFinder(userName);
     console.log("specific user object = ", specificUserObj);
+    
     // verify password 
-    console.log("userObj[specificUserObj.id].id = ", userObj[specificUserObj.id].id);
-    res.cookie('userID', userObj[specificUserObj.id].id);
-    // res.cookie('email', userName);
-    res.redirect('/urls')
+    if (verifyPassword(userPass, specificUserObj) === true) {
+      // console.log("PASSWORD VERIFIED");
+      console.log("userObj[specificUserObj.id].id = ", userObj[specificUserObj.id].id);
+      res.cookie('userID', userObj[specificUserObj.id].id);
+      res.redirect('/urls');
+    }
+    if (!verifyPassword(userPass, specificUserObj)) {
+      console.log("userObj[specificUserObj.id].id = ", userObj[specificUserObj.id].id);
+      // alert("Wrong password");  // I'd like an alert here
+      res.redirect('/login');
+    }
   } 
   // if email does not exist in database
   if (emailFinder(userName) === false) {
+    console.log("I'm supposed to return a 403 code, but I'd prefer to send you to the registration page.");
     // go to registration
     res.redirect('/register');
   } 
-  // if (userObj.userName && userObj.userName === userPass) {
-  // res.cookie('email', userName);
-  //   res.redirect('/urls')
-  // }
-  // if (userObj.userName && userObj.userName === userPass) {
-  //   res.redirect('/login')
-  // }
+
 });
 
 // This clears the cookie jar when you click logout
