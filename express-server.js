@@ -64,8 +64,11 @@ function generateRandomString() {
 }
 
 // Returns true if email already exists, false if not
-const emailFinder = function(emailParam, password) {
+const emailFinder = function(emailParam) {
   for (const obj in userObj) {
+    console.log("userObj ========== ", userObj);
+    console.log("userObj[obj] ========== ", userObj[obj]);
+    console.log("userObj[obj].email ========== ", userObj[obj].email);
     if (userObj[obj].email === emailParam) {
       return (true);
     } 
@@ -73,7 +76,7 @@ const emailFinder = function(emailParam, password) {
   return (false);
 }
 // Returns a single user object
-const objectFinder = function(emailParam, password) {
+const objectFinder = function(emailParam) {
   for (const obj in userObj) {
     if (userObj[obj].email === emailParam) {
       return (userObj[obj]);
@@ -137,7 +140,7 @@ app.get("/urls.json", (req, res) => {
 // 
 app.get("/urls/new", (req, res) => {
   const templateVars = { 
-    username: req.cookies["username"] 
+    user: req.cookies["userID"] 
     
   };
   res.render("urls_new", templateVars);
@@ -188,7 +191,7 @@ app.post("/register", (req, res) => {
     if (emailFinder(userEmail) === true) {
       res.status(404).render('404'); 
     }
-  } if (req.body['username'] === undefined  || req.body['password'] === undefined) {  //user passes in name and password
+  } if (req.body['email'] === undefined  || req.body['password'] === undefined) {  //user passes in name and password
     res.redirect('/register');
   }
 })
@@ -239,7 +242,7 @@ app.post("/login", (req, res) => {
 
 // This clears the cookie jar when you click logout
 app.post("/logout", (req, res) => {
-  res.clearCookie('email');
+  res.clearCookie('userID');
   res.redirect('/urls');
 })
 
