@@ -19,20 +19,39 @@ const urlDatabase = {
 };
 
   let userObj = { 
-
+    "userRandomID": {
+      id: "userRandomID", 
+      email: "user@example.com", 
+      password: "purple-monkey-dinosaur"
+    },
+   "user2RandomID": {
+      id: "user2RandomID", 
+      email: "user2@example.com", 
+      password: "dishwasher-funk"
+    }
   };
 
 
 app.get('/', (req, res) => {
   console.log('Cookies: ', req.cookies);
   const templateVars = {
-    username: req.cookies["username"],
+    user: userObj[req.cookies.userID], 
     // ... any other vars
   };
   res.render("urls_index", templateVars);
 });
 
-
+function generateRandomUserId() {
+  const stringLength = 12;
+  let result           = '';
+  const characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  for ( var i = 0; i < stringLength; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  // console.log(result);
+  return (result);
+}
 
 function generateRandomString() {
   const stringLength = 6;
@@ -51,12 +70,17 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { 
-    userGroup: userObj,
-    username: req.cookies["username"], 
+  console.log("[req.cookies.userID] = ", req.cookies.userID)
+  const templateVars = {
+
+    // userGroup: userObj,
+    user: userObj[req.cookies.userID], 
     urls: urlDatabase 
   };
+  console.log("userObj = ",userObj);
+  console.log("templateVars =", templateVars);
   res.render("urls_index", templateVars);
+
 });
 
 
@@ -85,7 +109,7 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
-    username: req.cookies["username"],
+    user: userObj[req.cookies.userID], 
     shortURL: req.params.shortURL, 
     longURL: req.params.shortURL 
   };
@@ -106,7 +130,7 @@ app.get("/register", (req, res) => {
   console.log("req.body['password'] password = ", req.body['password']);
   const userEmail = req.body['email'];
   const userPass = req.body['password'];
-  userObj.userEmail = userPass;
+  // userObj.userEmail = userPass;
 
 
   res.render('register');
@@ -117,31 +141,25 @@ app.post("/register", (req, res) => {
   console.log("register req.body = ", req.body);
   if (req.body['email'] !== undefined  && req.body['password'] !== undefined) {  //user passes in name and password
     const userEmail = req.body['email'];
-    res.cookie('email', userEmail);
+    const userPass = req.body['password'];
+    const randomId = generateRandomUserId();
+    let newUserObj = {}
+    newUserObj = {
+      "id": randomId,
+      "email": userEmail,
+      "password": userPass
+    };
+    userObj[randomId] = newUserObj;
+    console.log("newUserObj = ", newUserObj);
+    console.log("userObj = ", userObj);
+
+    res.cookie('userID', newUserObj['id']);
     res.redirect('/urls');
   }
   if (req.body['username'] === undefined  || req.body['password'] === undefined) {  //user passes in name and password
     res.redirect('/register');
   }
 })
-// app.post("/register", (req, res) => {
-//   console.log("register req.body = ", req.body);
-//   const userName = req.body['username'];
-//   const userPass = req.body['password'];
-
-//   // userObj[userName] === userPass;
-
-//   // res.cookie('username', userName);
-//   // console.log('username =', userName);
-//   // res.redirect('/urls');
-//   if (userObj.userName && userObj.userName === userPass) {
-//   res.cookie('username', userName);
-//     res.redirect('/urls')
-//   }
-//   if (userName && userName !== userPass) {
-//     res.redirect('/login')
-//   }
-// });
 
 // Login routes
 app.get("/login", (req, res) => {

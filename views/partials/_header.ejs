@@ -6,7 +6,7 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
 
-      <% if (locals.username === undefined) { %>
+      <% if (locals.user === undefined) { %>
         <div>
           <a href="/login"> Login </a>
           <a href="/register"> Register </a>
@@ -14,8 +14,8 @@
 
       <% } else { %>
        
-          <h3  class="navbar-brand"> USERNAME</h3>
-          <h3  class="navbar-brand"> <%= username %> </h3>
+          <h3  class="navbar-brand"> USER </h3>
+          <h3  class="navbar-brand"> <%= user.email  %> </h3>
           <form method="POST" action="/logout"> 
             <input type="submit" class="btn btn-secondary btn-sm"
             value="LOG OUT" >
