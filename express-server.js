@@ -1,13 +1,16 @@
 const express = require("express");
-var morgan = require('morgan')
+var morgan = require('morgan');
+var cookieParser = require('cookie-parser');
+const bodyParser = require("body-parser");
 
 const app = express();
 const PORT = 8080; // default port 8080
 
 app.set('view engine', 'ejs');
 
-const bodyParser = require("body-parser");
+app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(morgan('dev'));
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -15,7 +18,21 @@ const urlDatabase = {
   
 };
 
-app.use(morgan('dev'));
+  let userObj = { 
+
+  };
+
+
+app.get('/', (req, res) => {
+  console.log('Cookies: ', req.cookies);
+  const templateVars = {
+    username: req.cookies["username"],
+    // ... any other vars
+  };
+  res.render("urls_index", templateVars);
+});
+
+
 
 function generateRandomString() {
   const stringLength = 6;
@@ -34,7 +51,11 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { 
+    userGroup: userObj,
+    username: req.cookies["username"], 
+    urls: urlDatabase 
+  };
   res.render("urls_index", templateVars);
 });
 
@@ -52,21 +73,113 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+// 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = { 
+    username: req.cookies["username"] 
+    
+  };
+  res.render("urls_new", templateVars);
 });
 
+
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: req.params.shortURL };
+  const templateVars = { 
+    username: req.cookies["username"],
+    shortURL: req.params.shortURL, 
+    longURL: req.params.shortURL 
+  };
   res.render("urls_show", templateVars);
 });
 
+// Reads short url and redirects you to the actual longURL webpage
 app.get("/u/:shortURL", (req, res) => {
   // console.log(urlDatabase[req.params.shortURL]);
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
 
+
+// Registration routes
+app.get("/register", (req, res) => {
+  console.log("req.body['email'] email = ", req.body['email']);
+  console.log("req.body['password'] password = ", req.body['password']);
+  const userEmail = req.body['email'];
+  const userPass = req.body['password'];
+  userObj.userEmail = userPass;
+
+
+  res.render('register');
+});
+
+// submit handler (registration form)
+app.post("/register", (req, res) => {
+  console.log("register req.body = ", req.body);
+  if (req.body['email'] !== undefined  && req.body['password'] !== undefined) {  //user passes in name and password
+    const userEmail = req.body['email'];
+    res.cookie('email', userEmail);
+    res.redirect('/urls');
+  }
+  if (req.body['username'] === undefined  || req.body['password'] === undefined) {  //user passes in name and password
+    res.redirect('/register');
+  }
+})
+// app.post("/register", (req, res) => {
+//   console.log("register req.body = ", req.body);
+//   const userName = req.body['username'];
+//   const userPass = req.body['password'];
+
+//   // userObj[userName] === userPass;
+
+//   // res.cookie('username', userName);
+//   // console.log('username =', userName);
+//   // res.redirect('/urls');
+//   if (userObj.userName && userObj.userName === userPass) {
+//   res.cookie('username', userName);
+//     res.redirect('/urls')
+//   }
+//   if (userName && userName !== userPass) {
+//     res.redirect('/login')
+//   }
+// });
+
+// Login routes
+app.get("/login", (req, res) => {
+  console.log("req.body['email'] email = ", req.body['email']);
+  console.log("req.body['password'] password = ", req.body['password']);
+  const userEmail = req.body['email'];
+  const userPass = req.body['password'];
+  userObj.userEmail = userPass;
+
+
+  res.render('login');
+});
+
+// Login submit handler This adds the username to the cookie jar and refreshes the page
+app.post("/login", (req, res) => {
+  console.log("req.body = ", req.body);
+  const userName = req.body['email'];
+  const userPass = req.body['password'];
+
+  // res.cookie('username', userName);
+  // console.log('username =', userName);
+  // res.redirect('/urls');
+  if (userObj.userName && userObj.userName === userPass) {
+  res.cookie('email', userName);
+    res.redirect('/urls')
+  }
+  if (userObj.userName && userObj.userName === userPass) {
+    res.redirect('/login')
+  }
+});
+
+// This clears the cookie jar when you click logout
+app.post("/logout", (req, res) => {
+  res.clearCookie('email');
+  res.redirect('/urls');
+})
+
+// Deletes a url from MyURLs
 app.post("/urls/:shortURL/delete", (req, res) => {
   // console.log("req.params.shortURL :", req.params.shortURL);
   const id = req.params.shortURL;
@@ -77,9 +190,9 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/urls/:shortURL", (req, res) => {
   console.log("This is req.params.shortURL: ", req.params.shortURL);
   console.log("This is urlDatabase[req.params.shortURL]: ", urlDatabase[req.params.shortURL]);
-  console.log("This is req: ", req);
+  console.log("This is req.body.changeName: ", req.body.changeName);
 
-  urlDatabase[req.params.shortURL] = req.body.longURL; //want this to equal the input url from POST 
+  urlDatabase[req.params.shortURL] = req.body.changeName; //want this to equal the input url from POST 
   res.redirect('/urls');
 });
 

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TinyURL Registration</title>
+</head>
+<body>
+  <%- include('partials/_header') %>
+  
+  <h3> Registration </h3>
+
+  <form method="POST" action="/register">
+    <input type="email" name="email" value="enter email"> 
+    <input type="password" name="password" value="choose password">
+    <input type="submit" class="btn btn-secondary btn-sm"
+    value="Sign Up/Register">
+  </form>
+  
+</body>
+</html>
+
