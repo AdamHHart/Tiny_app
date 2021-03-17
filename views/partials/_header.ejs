@@ -13,12 +13,13 @@
           value="Sign In/Submit">
         </form>        
       <% } %>
+
       <% if (username !== undefined) { %>
           <h3  class="navbar-brand"> USERNAME</h3>
           <h3  class="navbar-brand"> <%= username %> </h3>
           <form method="POST" action="/logout"> 
             <input type="submit" class="btn btn-secondary btn-sm"
-            value="LOG OUT">
+            value="LOG OUT" >
           </form>        
       <% } %>
 
