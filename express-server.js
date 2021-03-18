@@ -74,8 +74,11 @@ function generateRandomString() {
 
 // Returns true if email already exists, false if not
 const emailFinder = function(emailParam) {
-  for (const obj in userObj) {
-    if (userObj[obj].email === emailParam) {
+  for (const key in userObj) {
+    const keyRecord = userObj[key];
+    // console.log("keyRecord = ", keyRecord);
+    if (keyRecord.email === emailParam) {
+    // console.log("keyRecord.email", keyRecord.email);  
       return (true);
     } 
   }
@@ -89,6 +92,7 @@ const objectFinder = function(emailParam) {
     } 
   }
 }
+
 // Verify Password
 const verifyPassword = function(password, userObject) {
   for (const key in userObject) {
@@ -96,6 +100,23 @@ const verifyPassword = function(password, userObject) {
       return (true);
     } 
   }
+}
+
+// Transfer only user's urls to template vars 
+
+const urlsForUser = function(id) {
+  let userURLs = {};
+  for (const key in urlDatabase) {
+    const urlRecord = urlDatabase[key];
+    
+
+    if (urlRecord.userID === id) {
+      userURLs[key] = urlRecord;
+    }
+    
+  }
+  console.log("userURLs = ", userURLs);
+  return (userURLs);
 }
 
 
@@ -116,22 +137,25 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  console.log("[req.cookies.userID] = ", req.cookies.userID)
-  const templateVars = {
-    user: userObj[req.cookies.userID],
-    urls: urlDatabase     
-  };
-  console.log("userObj = ",userObj);
-  console.log("templateVars =", templateVars);
-  res.render("urls_index", templateVars);
 
+  const userID = req.cookies.userID;
+  console.log("userID =", userID);
+  const user = userObj[userID];
+  console.log("user = ", user);
+  const urls = urlsForUser(userID);
+  
+  let templateVars = { urls, user };
+
+  res.render("urls_index", templateVars);
 });
 
 
 
 // create new url
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
+  
+
+  // console.log(req.body);  // Log the POST request body to the console
   let newUrl = generateRandomString(); 
   // console.log("newUrl = ", newUrl);
   const templateVars = {
@@ -181,7 +205,7 @@ app.get("/urls/:shortURL", (req, res) => {
     longURL: urlDatabase[newShortUrl].longURL
   };
 
-  console.log("urlDatabase[newShortUrl].longURL = ", urlDatabase[newShortUrl].longURL);
+  // console.log("urlDatabase[newShortUrl].longURL = ", urlDatabase[newShortUrl].longURL);
   res.render("urls_show", templateVars);
 });
 
@@ -189,8 +213,8 @@ app.get("/urls/:shortURL", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   // console.log(urlDatabase[req.params.shortURL]);
   const longURL = urlDatabase[req.params.shortURL].longURL;
-  console.log("urlDatabase[req.params.shortURL].longURL", urlDatabase[req.params.shortURL].longURL);
-  console.log("req.params.shortURL", req.params.shortURL);
+  // console.log("urlDatabase[req.params.shortURL].longURL", urlDatabase[req.params.shortURL].longURL);
+  // console.log("req.params.shortURL", req.params.shortURL);
 
   res.redirect(longURL);
 });
@@ -218,13 +242,17 @@ app.post("/register", (req, res) => {
       userObj[randomId] = newUserObj; 
       res.cookie('userID', newUserObj['id']);
       res.redirect('/urls');
+      return;
     }
+
     // if email already exists in database
     if (emailFinder(userEmail) === true) {
       res.status(404).render('404'); 
+      return;
     }
   } if (req.body['email'] === undefined  || req.body['password'] === undefined) {  //user passes in name and password
     res.redirect('/register');
+    return;
   }
 })
 
@@ -292,7 +320,7 @@ app.post("/urls/:shortURL", (req, res) => {
   console.log("This is req.body.changeName: ", req.body.changeName);
 
   urlDatabase[req.params.shortURL] = req.body.changeName; //want this to equal the input url from POST 
-  res.redirect('/urls');
+  res.redirect('/login');
 });
 
 // Not yet working 
