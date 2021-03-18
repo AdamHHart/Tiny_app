@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
 const cookieSession = require("cookie-session");
+const { getUserObjectByEmail } = require("./helperFunctions")
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -38,7 +39,7 @@ const urlDatabase = {
 };
 
 
-let userObj = { 
+let userDatabase = { 
   "userRandomID": {
     id: "userRandomID", 
     email: "ad@ad.ca", 
@@ -81,8 +82,8 @@ function generateRandomString() {
 
 // Returns true if email already exists, false if not
 const emailFinder = function(emailParam) {
-  for (const key in userObj) {
-    const keyRecord = userObj[key];
+  for (const key in userDatabase) {
+    const keyRecord = userDatabase[key];
     console.log("keyRecord = ", keyRecord);
     if (keyRecord.email === emailParam) {
     console.log("EMAIL FOUND keyRecord.email = ", keyRecord.email);  
@@ -91,14 +92,9 @@ const emailFinder = function(emailParam) {
   }
   return (false);
 }
-// Returns a single user object
-const objectFinder = function(emailParam) {
-  for (const obj in userObj) {
-    if (userObj[obj].email === emailParam) {
-      return (userObj[obj]);
-    } 
-  }
-}
+
+
+
 
 // Verify Password
 const verifyPassword = function(password, userObject) {
@@ -132,7 +128,7 @@ const urlsForUser = function(id) {
 
 app.get('/', (req, res) => {
   const templateVars = {
-    user: userObj[req.session["userID"]], 
+    user: userDatabase[req.session["userID"]], 
     urls: urlDatabase 
   };
   res.render("urls_index", templateVars);
@@ -148,8 +144,8 @@ app.get("/urls", (req, res) => {
   console.log("req.session[userID] =", req.session["userID"]);
   const userID = req.session["userID"];
   // console.log("userID =", userID);
-  const user = userObj[userID];
-  console.log("LOGGED IN AS user = ", userObj);
+  const user = userDatabase[userID];
+  console.log("LOGGED IN AS user = ", userDatabase);
   const urls = urlsForUser(userID);
   
   let templateVars = { urls, user };
@@ -169,7 +165,7 @@ app.post("/urls", (req, res) => {
   const templateVars = {
 
     // userGroup: userObj,
-    user: userObj[req.session["userID"]]
+    user: userDatabase[req.session["userID"]]
   };
 
   urlDatabase[newUrl] =    {
@@ -190,7 +186,7 @@ app.get("/urls.json", (req, res) => {
 app.get("/urls/new", (req, res) => {
   if (req.session["userID"]) {
     const templateVars = { 
-      user: userObj[req.session["userID"]], 
+      user: userDatabase[req.session["userID"]], 
     };
     res.render("urls_new", templateVars);
   } else {
@@ -208,7 +204,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const newShortUrl = req.params.shortURL;
 
   const templateVars = { 
-    user: userObj[req.session["userID"]], 
+    user: userDatabase[req.session["userID"]], 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[newShortUrl].longURL
   };
@@ -250,7 +246,7 @@ app.post("/register", (req, res) => {
         "email": userEmail,
         "password": userHashedPass
       };
-      userObj[randomId] = newUserObj; 
+      userDatabase[randomId] = newUserObj; 
       res.cookie('userID', newUserObj['id']);
       res.redirect('/urls');
       return;
@@ -271,7 +267,7 @@ app.post("/register", (req, res) => {
 app.get("/login", (req, res) => {
   const userEmail = req.body['email'];
   const userPass = req.body['password'];
-  userObj.userEmail = userPass;
+  userDatabase.userEmail = userPass;
 
 
   res.render('login');
@@ -285,20 +281,20 @@ app.post("/login", (req, res) => {
   
   console.log("userPass = ", inputPassword);
 
-  console.log("current available users (userObj) = ", userObj);
+  console.log("current available users (userObj) = ", userDatabase);
 
   // if email exists in database
   if (emailFinder(userName) === true) {
 
     // isolates login object
-    const specificUserObject = objectFinder(userName);
+    const specificUserObject = getUserObjectByEmail(userName, userDatabase);
     console.log("specific user password = ", specificUserObject);
     
     // verify password 
     if (bcrypt.compareSync(inputPassword, specificUserObject.password)) {
       console.log("PASSWORD VERIFIED");
       // console.log("userObj[specificUserObj.id].id = ", userObj[specificUserObject.id].id);
-      req.session["userID"] = userObj[specificUserObject.id].id;
+      req.session["userID"] = userDatabase[specificUserObject.id].id;
       res.redirect('/urls');
     }
     if (!bcrypt.compareSync(inputPassword, specificUserObject.password)) {
