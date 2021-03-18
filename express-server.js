@@ -18,8 +18,16 @@ app.use(morgan('dev'));
 // DATABASES
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    shortURL: "b2xVn2",
+    longURL: "http://www.lighthouselabs.ca", 
+    userID: "userRandomID"
+  },
+  "9sm5xK": {
+    shortURL: "9sm5xK",
+    longURL: "http://www.google.com", 
+    userID: "userRandomID"
+  }
 };
 
 let userObj = { 
@@ -112,10 +120,8 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   console.log("[req.cookies.userID] = ", req.cookies.userID)
   const templateVars = {
-
-    // userGroup: userObj,
-    user: userObj[req.cookies.userID], 
-    urls: urlDatabase 
+    user: userObj[req.cookies.userID],
+    urls: urlDatabase     
   };
   console.log("userObj = ",userObj);
   console.log("templateVars =", templateVars);
