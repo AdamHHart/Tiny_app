@@ -4,7 +4,8 @@ const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
 const cookieSession = require("cookie-session");
-const { getUserObjectByEmail } = require("./helperFunctions")
+const { getUserObjectByEmail } = require("./helperFunctions");
+const { urlDatabase, userDatabase } = require("./databases");
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -23,34 +24,6 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(morgan('dev'));
 
 
-// DATABASES
-
-const urlDatabase = {
-  "b2xVn2": {
-    shortURL: "b2xVn2",
-    longURL: "http://www.lighthouselabs.ca", 
-    userID: "userRandomID"
-  },
-  "9sm5xK": {
-    shortURL: "9sm5xK",
-    longURL: "http://www.google.com", 
-    userID: "userRandomID"
-  }
-};
-
-
-let userDatabase = { 
-  "userRandomID": {
-    id: "userRandomID", 
-    email: "ad@ad.ca", 
-    password: "AD"
-  },
-  "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
-    password: "dishwasher-funk"
-  }
-};
 
 // FUNCTIONS
 
