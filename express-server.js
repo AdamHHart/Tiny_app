@@ -30,6 +30,7 @@ const urlDatabase = {
   }
 };
 
+
 let userObj = { 
   "userRandomID": {
     id: "userRandomID", 
@@ -74,9 +75,6 @@ function generateRandomString() {
 // Returns true if email already exists, false if not
 const emailFinder = function(emailParam) {
   for (const obj in userObj) {
-    console.log("userObj ========== ", userObj);
-    console.log("userObj[obj] ========== ", userObj[obj]);
-    console.log("userObj[obj].email ========== ", userObj[obj].email);
     if (userObj[obj].email === emailParam) {
       return (true);
     } 
@@ -141,8 +139,13 @@ app.post("/urls", (req, res) => {
     // userGroup: userObj,
     user: userObj[req.cookies.userID]
   };
-  urlDatabase[newUrl] = req.body.longURL;
-  
+
+  urlDatabase[newUrl] =    {
+    shortURL: newUrl,
+    longURL: req.body.longURL, 
+    userID: req.cookies.userID
+  }
+
   res.redirect(`/urls/${newUrl}`);         // Respond with 'Ok' (we will replace this)
 
 });
@@ -169,18 +172,26 @@ app.get("/urls/new", (req, res) => {
 
 
 app.get("/urls/:shortURL", (req, res) => {
+
+  const newShortUrl = req.params.shortURL;
+
   const templateVars = { 
     user: userObj[req.cookies.userID], 
     shortURL: req.params.shortURL, 
-    longURL: req.params.shortURL 
+    longURL: urlDatabase[newShortUrl].longURL
   };
+
+  console.log("urlDatabase[newShortUrl].longURL = ", urlDatabase[newShortUrl].longURL);
   res.render("urls_show", templateVars);
 });
 
 // Reads short url and redirects you to the actual longURL webpage
 app.get("/u/:shortURL", (req, res) => {
   // console.log(urlDatabase[req.params.shortURL]);
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
+  console.log("urlDatabase[req.params.shortURL].longURL", urlDatabase[req.params.shortURL].longURL);
+  console.log("req.params.shortURL", req.params.shortURL);
+
   res.redirect(longURL);
 });
 
