@@ -1,8 +1,9 @@
 const express = require("express");
-var morgan = require('morgan');
-var cookieParser = require('cookie-parser');
+const morgan = require("morgan");
+const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcrypt");
+const cookieSession = require("cookie-session");
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -10,6 +11,11 @@ const PORT = 8080; // default port 8080
 app.set('view engine', 'ejs');
 
 // MIDDLEWEAR
+
+app.use(cookieSession ({
+  name: "SUPERCRYPT",
+  keys: ['key1', 'key2', 'key3', 'key4']
+}));
 
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -126,7 +132,7 @@ const urlsForUser = function(id) {
 
 app.get('/', (req, res) => {
   const templateVars = {
-    user: userObj[req.cookies.userID], 
+    user: userObj[req.session["userID"]], 
     urls: urlDatabase 
   };
   res.render("urls_index", templateVars);
@@ -139,10 +145,11 @@ app.get("/", (req, res) => {
 
 app.get("/urls", (req, res) => {
 
-  const userID = req.cookies.userID;
-  console.log("userID =", userID);
+  console.log("req.session[userID] =", req.session["userID"]);
+  const userID = req.session["userID"];
+  // console.log("userID =", userID);
   const user = userObj[userID];
-  console.log("user = ", user);
+  console.log("LOGGED IN AS user = ", userObj);
   const urls = urlsForUser(userID);
   
   let templateVars = { urls, user };
@@ -162,13 +169,13 @@ app.post("/urls", (req, res) => {
   const templateVars = {
 
     // userGroup: userObj,
-    user: userObj[req.cookies.userID]
+    user: userObj[req.session["userID"]]
   };
 
   urlDatabase[newUrl] =    {
     shortURL: newUrl,
     longURL: req.body.longURL, 
-    userID: req.cookies.userID
+    userID: req.session["userID"]
   }
 
   res.redirect(`/urls/${newUrl}`);         // Respond with 'Ok' (we will replace this)
@@ -181,9 +188,9 @@ app.get("/urls.json", (req, res) => {
 
 // Get route
 app.get("/urls/new", (req, res) => {
-  if (req.cookies.userID) {
+  if (req.session["userID"]) {
     const templateVars = { 
-      user: userObj[req.cookies.userID], 
+      user: userObj[req.session["userID"]], 
     };
     res.render("urls_new", templateVars);
   } else {
@@ -201,7 +208,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const newShortUrl = req.params.shortURL;
 
   const templateVars = { 
-    user: userObj[req.cookies.userID], 
+    user: userObj[req.session["userID"]], 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[newShortUrl].longURL
   };
@@ -233,6 +240,7 @@ app.post("/register", (req, res) => {
     const userHashedPass = bcrypt.hashSync(req.body['password'], 10);
     const randomId = generateRandomUserId();
     console.log("userHashedPass = ", userHashedPass);
+    req.session.userID = userEmail;
 
     //if email does not exist in database, and is valid
     if (emailFinder(userEmail) === false && (userEmail !== ""  || userPass !== "")) {
@@ -273,6 +281,7 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   const userName = req.body['email'];
   const inputPassword = req.body['password'];
+  req.session.userID = userName;
   
   console.log("userPass = ", inputPassword);
 
@@ -289,11 +298,11 @@ app.post("/login", (req, res) => {
     if (bcrypt.compareSync(inputPassword, specificUserObject.password)) {
       console.log("PASSWORD VERIFIED");
       // console.log("userObj[specificUserObj.id].id = ", userObj[specificUserObject.id].id);
-      res.cookie('userID', userObj[specificUserObject.id].id);
+      req.session["userID"] = userObj[specificUserObject.id].id;
       res.redirect('/urls');
     }
     if (!bcrypt.compareSync(inputPassword, specificUserObject.password)) {
-      console.log("userObj[specificUserObj.id].id = ", userObj[specificUserObject.id].id);
+      // console.log("userObj[specificUserObj.id].id = ", userObj[specificUserObject.id].id);
       console.log("Wrong password, because not hashed = specificUserObject.password? inputPassword: ", inputPassword, "specificUserObject.password: ", specificUserObject.password );  // I'd like an alert here
       res.redirect('/login');
     }
@@ -309,7 +318,7 @@ app.post("/login", (req, res) => {
 
 // This clears the cookie jar when you click logout
 app.post("/logout", (req, res) => {
-  res.clearCookie('userID');
+  req.session['userID'] = null;
   res.redirect('/urls');
 })
 
