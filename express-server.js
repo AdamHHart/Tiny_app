@@ -2,6 +2,7 @@ const express = require("express");
 var morgan = require('morgan');
 var cookieParser = require('cookie-parser');
 const bodyParser = require("body-parser");
+const bcrypt = require('bcrypt');
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -76,9 +77,9 @@ function generateRandomString() {
 const emailFinder = function(emailParam) {
   for (const key in userObj) {
     const keyRecord = userObj[key];
-    // console.log("keyRecord = ", keyRecord);
+    console.log("keyRecord = ", keyRecord);
     if (keyRecord.email === emailParam) {
-    // console.log("keyRecord.email", keyRecord.email);  
+    console.log("EMAIL FOUND keyRecord.email = ", keyRecord.email);  
       return (true);
     } 
   }
@@ -229,15 +230,17 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   if (req.body['email'] !== undefined  && req.body['password'] !== undefined) {  //user passes in name and password
     const userEmail = req.body['email'];
-    const userPass = req.body['password'];
+    const userHashedPass = bcrypt.hashSync(req.body['password'], 10);
     const randomId = generateRandomUserId();
+    console.log("userHashedPass = ", userHashedPass);
+
     //if email does not exist in database, and is valid
     if (emailFinder(userEmail) === false && (userEmail !== ""  || userPass !== "")) {
       let newUserObj = {}
       newUserObj = {
         "id": randomId,
         "email": userEmail,
-        "password": userPass
+        "password": userHashedPass
       };
       userObj[randomId] = newUserObj; 
       res.cookie('userID', newUserObj['id']);
@@ -269,25 +272,29 @@ app.get("/login", (req, res) => {
 // Login submit handler This adds the username to the cookie jar and refreshes the page
 app.post("/login", (req, res) => {
   const userName = req.body['email'];
-  const userPass = req.body['password'];
+  const inputPassword = req.body['password'];
+  
+  console.log("userPass = ", inputPassword);
+
+  console.log("current available users (userObj) = ", userObj);
 
   // if email exists in database
   if (emailFinder(userName) === true) {
 
     // isolates login object
-    const specificUserObj = objectFinder(userName);
-    console.log("specific user object = ", specificUserObj);
+    const specificUserObject = objectFinder(userName);
+    console.log("specific user password = ", specificUserObject);
     
     // verify password 
-    if (verifyPassword(userPass, specificUserObj) === true) {
-      // console.log("PASSWORD VERIFIED");
-      console.log("userObj[specificUserObj.id].id = ", userObj[specificUserObj.id].id);
-      res.cookie('userID', userObj[specificUserObj.id].id);
+    if (bcrypt.compareSync(inputPassword, specificUserObject.password)) {
+      console.log("PASSWORD VERIFIED");
+      // console.log("userObj[specificUserObj.id].id = ", userObj[specificUserObject.id].id);
+      res.cookie('userID', userObj[specificUserObject.id].id);
       res.redirect('/urls');
     }
-    if (!verifyPassword(userPass, specificUserObj)) {
-      console.log("userObj[specificUserObj.id].id = ", userObj[specificUserObj.id].id);
-      // alert("Wrong password");  // I'd like an alert here
+    if (!bcrypt.compareSync(inputPassword, specificUserObject.password)) {
+      console.log("userObj[specificUserObj.id].id = ", userObj[specificUserObject.id].id);
+      console.log("Wrong password, because not hashed = specificUserObject.password? inputPassword: ", inputPassword, "specificUserObject.password: ", specificUserObject.password );  // I'd like an alert here
       res.redirect('/login');
     }
   } 
