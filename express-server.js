@@ -124,27 +124,42 @@ app.get("/urls", (req, res) => {
 });
 
 
+
 // create new url
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
   let newUrl = generateRandomString(); 
   // console.log("newUrl = ", newUrl);
+  const templateVars = {
+
+    // userGroup: userObj,
+    user: userObj[req.cookies.userID]
+  };
   urlDatabase[newUrl] = req.body.longURL;
+  
   res.redirect(`/urls/${newUrl}`);         // Respond with 'Ok' (we will replace this)
+
 });
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-// 
+// Get route
 app.get("/urls/new", (req, res) => {
-  const templateVars = { 
-    user: req.cookies["userID"] 
-    
-  };
-  res.render("urls_new", templateVars);
+  if (req.cookies.userID) {
+    const templateVars = { 
+      user: userObj[req.cookies.userID], 
+    };
+    res.render("urls_new", templateVars);
+  } else {
+    const templateVars = { 
+      user: null
+    };
+    res.render("login", templateVars);
+  }
 });
+
 
 
 app.get("/urls/:shortURL", (req, res) => {
