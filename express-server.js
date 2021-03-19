@@ -82,7 +82,7 @@ const urlsForUser = function(id) {
       userURLs[key] = urlRecord;
     } 
   }
-  console.log("userURLs = ", userURLs);
+
   return (userURLs);
 }
 
@@ -114,7 +114,6 @@ app.get("/urls", (req, res) => {
 // create new url
 app.post("/urls", (req, res) => {
   let newUrl = generateRandomString(); 
-  // console.log("newUrl = ", newUrl);
   const templateVars = {
     user: userDatabase[req.session["userID"]]
   };
@@ -154,17 +153,13 @@ app.get("/urls/:shortURL", (req, res) => {
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[newShortUrl].longURL
   };
-  // console.log("urlDatabase[newShortUrl].longURL = ", urlDatabase[newShortUrl].longURL);
+  
   res.render("urls_show", templateVars);
 });
 
 // Reads short url and redirects you to the actual longURL webpage
 app.get("/u/:shortURL", (req, res) => {
-  // console.log(urlDatabase[req.params.shortURL]);
   const longURL = urlDatabase[req.params.shortURL].longURL;
-  // console.log("urlDatabase[req.params.shortURL].longURL", urlDatabase[req.params.shortURL].longURL);
-  // console.log("req.params.shortURL", req.params.shortURL);
-
   res.redirect(longURL);
 });
 
@@ -180,7 +175,6 @@ app.post("/register", (req, res) => {
     const userEmail = req.body['email'];
     const userHashedPass = bcrypt.hashSync(req.body['password'], 10);
     const randomId = generateRandomUserId();
-    console.log("userHashedPass = ", userHashedPass);
     req.session.userID = userEmail;
 
     //if email does not exist in database, and is valid
@@ -221,10 +215,6 @@ app.post("/login", (req, res) => {
   const userName = req.body['email'];
   const inputPassword = req.body['password'];
   req.session.userID = userName;
-  
-  console.log("userPass = ", inputPassword);
-
-  console.log("current available users (userObj) = ", userDatabase);
 
   // if email exists in database
   if (emailFinder(userName) === true) {
@@ -235,13 +225,11 @@ app.post("/login", (req, res) => {
     // verify password 
     if (bcrypt.compareSync(inputPassword, specificUserObject.password)) {
       console.log("PASSWORD VERIFIED");
-      // console.log("userObj[specificUserObj.id].id = ", userObj[specificUserObject.id].id);
       req.session["userID"] = userDatabase[specificUserObject.id].id;
       res.redirect('/urls');
     }
     if (!bcrypt.compareSync(inputPassword, specificUserObject.password)) {
-      // console.log("userObj[specificUserObj.id].id = ", userObj[specificUserObject.id].id);
-      console.log("Wrong password, because not hashed = specificUserObject.password? inputPassword: ", inputPassword, "specificUserObject.password: ", specificUserObject.password );  // I'd like an alert here
+      console.log("Wrong password: ", inputPassword, "specificUserObject.password: ", specificUserObject.password );  // I'd like an alert here
       res.redirect('/login');
     }
   } 
@@ -262,17 +250,12 @@ app.post("/logout", (req, res) => {
 
 // Deletes a url from MyURLs
 app.post("/urls/:shortURL/delete", (req, res) => {
-  // console.log("req.params.shortURL :", req.params.shortURL);
   const id = req.params.shortURL;
   delete urlDatabase[id];
   res.redirect('/urls/');
 })
 
 app.post("/urls/:shortURL", (req, res) => {
-  console.log("This is req.params.shortURL: ", req.params.shortURL);
-  console.log("This is urlDatabase[req.params.shortURL]: ", urlDatabase[req.params.shortURL]);
-  console.log("This is req.body.changeName: ", req.body.changeName);
-
   urlDatabase[req.params.shortURL].longURL = req.body.changeName; //want this to equal the input url from POST 
   res.redirect('/urls');
 });
