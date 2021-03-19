@@ -172,14 +172,14 @@ app.get("/register", (req, res) => {
 
 // submit handler (registration form)
 app.post("/register", (req, res) => {
-  if (req.body['email'] !== undefined  && req.body['password'] !== undefined) {  //user passes in name and password
+  if (req.body['email'] !== null  && req.body['password'] !== null) {  //user passes in name and password
     const userEmail = req.body['email'];
     const userHashedPass = bcrypt.hashSync(req.body['password'], 10);
     const randomId = generateRandomUserId();
     req.session.userID = userEmail;
 
     //if email does not exist in database, and is valid
-    if (emailFinder(userEmail) === false && (userEmail !== ""  || userPass !== "")) {
+    if (emailFinder(userEmail) === false && (userEmail !== null  || userPass !== null)) {
       let newUserObj = {}
       newUserObj = {
         "id": randomId,
@@ -187,7 +187,6 @@ app.post("/register", (req, res) => {
         "password": userHashedPass
       };
       userDatabase[randomId] = newUserObj; 
-      // res.cookie('userID', newUserObj['id']);
       req.session["userID"] = randomId;
 
       res.redirect('/urls');
