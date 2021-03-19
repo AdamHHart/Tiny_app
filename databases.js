@@ -1,4 +1,6 @@
-const urlDatabase = {
+
+
+ urlDatabase = {
   "b2xVn2": {
     shortURL: "b2xVn2",
     longURL: "http://www.lighthouselabs.ca", 
@@ -12,7 +14,7 @@ const urlDatabase = {
 };
 
 
-let userDatabase = { 
+ userDatabase = { 
   "userRandomID": {
     id: "userRandomID", 
     email: "ad@ad.ca", 

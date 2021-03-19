@@ -4,8 +4,10 @@ const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
 const cookieSession = require("cookie-session");
+const { assert } = require('chai');
 const { getUserObjectByEmail } = require("./helperFunctions");
-const { urlDatabase, userDatabase } = require("./databases");
+let { urlDatabase, userDatabase } = require("./databases");
+
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -36,7 +38,6 @@ function generateRandomUserId() {
   for ( var i = 0; i < stringLength; i++ ) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
-  // console.log(result);
   return (result);
 }
 
@@ -49,7 +50,6 @@ function generateRandomString() {
   for ( var i = 0; i < 6; i++ ) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
-  // console.log(result);
   return (result);
 }
 
@@ -57,17 +57,12 @@ function generateRandomString() {
 const emailFinder = function(emailParam) {
   for (const key in userDatabase) {
     const keyRecord = userDatabase[key];
-    console.log("keyRecord = ", keyRecord);
     if (keyRecord.email === emailParam) {
-    console.log("EMAIL FOUND keyRecord.email = ", keyRecord.email);  
       return (true);
     } 
   }
   return (false);
 }
-
-
-
 
 // Verify Password
 const verifyPassword = function(password, userObject) {
@@ -79,17 +74,13 @@ const verifyPassword = function(password, userObject) {
 }
 
 // Transfer only user's urls to template vars 
-
 const urlsForUser = function(id) {
   let userURLs = {};
   for (const key in urlDatabase) {
     const urlRecord = urlDatabase[key];
-    
-
     if (urlRecord.userID === id) {
       userURLs[key] = urlRecord;
-    }
-    
+    } 
   }
   console.log("userURLs = ", userURLs);
   return (userURLs);
@@ -113,42 +104,26 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-
-  console.log("req.session[userID] =", req.session["userID"]);
   const userID = req.session["userID"];
-  // console.log("userID =", userID);
   const user = userDatabase[userID];
-  console.log("LOGGED IN AS user = ", userDatabase);
   const urls = urlsForUser(userID);
-  
   let templateVars = { urls, user };
-
   res.render("urls_index", templateVars);
 });
 
-
-
 // create new url
 app.post("/urls", (req, res) => {
-  
-
-  // console.log(req.body);  // Log the POST request body to the console
   let newUrl = generateRandomString(); 
   // console.log("newUrl = ", newUrl);
   const templateVars = {
-
-    // userGroup: userObj,
     user: userDatabase[req.session["userID"]]
   };
-
-  urlDatabase[newUrl] =    {
+  urlDatabase[newUrl] = {
     shortURL: newUrl,
     longURL: req.body.longURL, 
     userID: req.session["userID"]
   }
-
-  res.redirect(`/urls/${newUrl}`);         // Respond with 'Ok' (we will replace this)
-
+  res.redirect(`/urls/${newUrl}`);  
 });
 
 app.get("/urls.json", (req, res) => {
@@ -173,15 +148,12 @@ app.get("/urls/new", (req, res) => {
 
 
 app.get("/urls/:shortURL", (req, res) => {
-
   const newShortUrl = req.params.shortURL;
-
   const templateVars = { 
     user: userDatabase[req.session["userID"]], 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[newShortUrl].longURL
   };
-
   // console.log("urlDatabase[newShortUrl].longURL = ", urlDatabase[newShortUrl].longURL);
   res.render("urls_show", templateVars);
 });
@@ -220,14 +192,17 @@ app.post("/register", (req, res) => {
         "password": userHashedPass
       };
       userDatabase[randomId] = newUserObj; 
-      res.cookie('userID', newUserObj['id']);
+      // res.cookie('userID', newUserObj['id']);
+      req.session["userID"] = randomId;
+
       res.redirect('/urls');
       return;
     }
 
     // if email already exists in database
     if (emailFinder(userEmail) === true) {
-      res.status(404).render('404'); 
+      alert("Email already exists");
+      res.status(404).render('login'); 
       return;
     }
   } if (req.body['email'] === undefined  || req.body['password'] === undefined) {  //user passes in name and password
@@ -238,11 +213,6 @@ app.post("/register", (req, res) => {
 
 // Login routes
 app.get("/login", (req, res) => {
-  const userEmail = req.body['email'];
-  const userPass = req.body['password'];
-  userDatabase.userEmail = userPass;
-
-
   res.render('login');
 });
 
@@ -261,7 +231,6 @@ app.post("/login", (req, res) => {
 
     // isolates login object
     const specificUserObject = getUserObjectByEmail(userName, userDatabase);
-    console.log("specific user password = ", specificUserObject);
     
     // verify password 
     if (bcrypt.compareSync(inputPassword, specificUserObject.password)) {
@@ -287,7 +256,7 @@ app.post("/login", (req, res) => {
 
 // This clears the cookie jar when you click logout
 app.post("/logout", (req, res) => {
-  req.session['userID'] = null;
+  req.session = null;
   res.redirect('/urls');
 })
 
