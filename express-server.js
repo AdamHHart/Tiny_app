@@ -273,8 +273,8 @@ app.post("/urls/:shortURL", (req, res) => {
   console.log("This is urlDatabase[req.params.shortURL]: ", urlDatabase[req.params.shortURL]);
   console.log("This is req.body.changeName: ", req.body.changeName);
 
-  urlDatabase[req.params.shortURL] = req.body.changeName; //want this to equal the input url from POST 
-  res.redirect('/login');
+  urlDatabase[req.params.shortURL].longURL = req.body.changeName; //want this to equal the input url from POST 
+  res.redirect('/urls');
 });
 
 // Not yet working 
