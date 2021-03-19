@@ -21,12 +21,19 @@
           </tr>
         </thead>
         <tbody>
+          <% if (!locals.user) { %>
+            <div>
+              <a>You should </a><a href="/login"> Login </a><a> or </a>
+              <a href="/register"> Register </a><a> to enjoy the simplicity of TinyURLs 🤔 </a>
+            </div>
+          <% } %>
+
           <% for(let url in urls) { %>
 <!--URLS-->
             <tr>
-              <td> <a href="<%= url %>"></a><%= url %></td>
+              <td> <a href="<%=urls[url].longURL%>"><%= url %></a></td>
               
-              <td><a href="<%=urls[url].longURL%>"></a><%= urls[url].longURL %></td>
+              <td><%= urls[url].longURL %></td>
 <!--Delete button-->              
               <td>
                 <form method="POST" action="/urls/<%=url%>/delete"> 

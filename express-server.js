@@ -140,7 +140,8 @@ app.get("/urls/new", (req, res) => {
     const templateVars = { 
       user: null
     };
-    res.render("login", templateVars);
+    console.log("THIS IS WHERE WE ARE");
+    res.redirect("/login");
   }
 });
 
@@ -195,7 +196,7 @@ app.post("/register", (req, res) => {
 
     // if email already exists in database
     if (emailFinder(userEmail) === true) {
-      alert("Email already exists");
+      // alert("Email already exists");
       res.status(404).render('login'); 
       return;
     }
