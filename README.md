@@ -38,3 +38,7 @@ Create TinyURLs.
 ## BUGS
 If you find bugz, email adamhayhart@gmail.com with the subject "TinyApp BUGS".
 Enjoy.
+
+!["Screenshot of URLs page"](https://github.com/AdamHHart/Tiny_app/blob/master/docs/URLs_Page.jpg)
+!["Screenshot of Create TinyURL Page"](https://github.com/AdamHHart/Tiny_app/blob/master/docs/Create_URLs_Page.jpg)
+!["Screenshot of the Not Logged In Page"](https://github.com/AdamHHart/Tiny_app/blob/master/docs/Not_Logged_In_Page.jpg)
